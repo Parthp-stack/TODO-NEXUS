@@ -1,0 +1,129 @@
+/* ==============================================================================
+   NEXUS: Animation System & Micro-Interactions
+   Smooth, refined, non-distracting Japanese Cyberpunk FX
+   ============================================================================== */
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes toastFadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(10px) scale(0.95);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin-anim {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes neonGlowPulse {
+    0%, 100% {
+        box-shadow: 0 0 10px var(--neon-cyan-glow);
+    }
+    50% {
+        box-shadow: 0 0 22px var(--neon-cyan-glow), 0 0 5px var(--neon-cyan);
+    }
+}
+
+.pulse-glow {
+    animation: neonGlowPulse 2.8s ease-in-out infinite;
+}
+
+/* Checkbox ripple on complete */
+@keyframes checkRipple {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(0, 255, 157, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
+    }
+}
+
+.task-checkbox:checked + .nexus-checkbox-custom {
+    animation: checkRipple 0.45s ease-out;
+}
+
+/* Page fade-in */
+@keyframes pageFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-view.is-active {
+    animation: pageFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Modal Entry */
+@keyframes modalEntry {
+    from {
+        opacity: 0;
+        transform: scale(0.93) translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.nexus-modal.is-active .modal-dialog {
+    animation: modalEntry 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3D Card Hover Depth transition */
+.enable-3d .task-card,
+.enable-3d .upcoming-day-card,
+.enable-3d .history-day-card {
+    transform-style: preserve-3d;
+    transition: transform 0.15s ease-out, box-shadow 0.25s ease;
+}
+
+/* Reduced Motion Mode */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+    transform: none !important;
+}

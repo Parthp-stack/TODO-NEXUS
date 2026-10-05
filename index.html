@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="cyberpunk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>NEXUS – Daily Planner & Personal Activity History</title>
+    <meta name="description" content="Futuristic Japanese Cyberpunk Daily Planner and Permanent Activity History. Plan upcoming days, record what you did, and remember your past.">
+    <meta name="theme-color" content="#060911">
+
+    <!-- Supabase JS Client v2 from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+    <!-- Particle canvas & cyber grid overlay -->
+    <canvas id="sakura-canvas"></canvas>
+    <div class="cyber-grid-overlay"></div>
+
+    <!-- Mobile Top Header Bar -->
+    <header class="mobile-top-header">
+        <div class="mobile-brand">
+            <div class="brand-logo-icon" style="width: 32px; height: 32px;">
+                <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            </div>
+            <div>
+                <h2>NEXUS // 連環</h2>
+                <span id="mobile-header-date" class="mobile-header-sub">5 OCT 2026</span>
+            </div>
+        </div>
+        <div class="mobile-header-right">
+            <div id="nexus-network-badge-mobile" class="network-badge is-online">
+                <span class="status-dot"></span>
+                <span id="nexus-network-label-mobile">ONLINE</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="nexus-app-container">
+
+        <!-- ====================================================================
+             LEFT SIDEBAR (DESKTOP)
+             ==================================================================== -->
+        <aside class="nexus-sidebar">
+            <div class="brand-section">
+                <div class="brand-logo-icon">
+                    <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                </div>
+                <div class="brand-title-wrap">
+                    <h1>NEXUS</h1>
+                    <span class="brand-kanji-sub">連環 // COMMAND</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav">
+                <a href="#today" class="nav-item is-active" data-page="today" data-nav-target="today">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Today</span>
+                    <span class="nav-kanji-badge">今日</span>
+                </a>
+
+                <a href="#upcoming" class="nav-item" data-page="upcoming" data-nav-target="upcoming">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    <span>Upcoming</span>
+                    <span class="nav-kanji-badge">未来</span>
+                </a>
+
+                <a href="#calendar" class="nav-item" data-page="calendar" data-nav-target="calendar">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Calendar</span>
+                    <span class="nav-kanji-badge">暦</span>
+                </a>
+
+                <a href="#history" class="nav-item" data-page="history" data-nav-target="history">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path></svg>
+                    <span>History</span>
+                    <span class="nav-kanji-badge">記憶</span>
+                </a>
+
+                <a href="#search" class="nav-item" data-page="search" data-nav-target="search">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <span>Search</span>
+                    <span class="nav-kanji-badge">索</span>
+                </a>
+
+                <a href="#settings" class="nav-item" data-page="settings" data-nav-target="settings">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                    <span class="nav-kanji-badge">設定</span>
+                </a>
+            </nav>
+
+            <!-- Quick Add Button -->
+            <button id="btn-global-add-task" class="sidebar-cta-btn">
+                <span>+ ADD TASK</span>
+                <span style="font-size: 0.75rem; opacity: 0.8;">新規</span>
+            </button>
+
+            <!-- System Status -->
+            <div class="sidebar-footer">
+                <div id="nexus-network-badge" class="network-badge is-online">
+                    <span class="status-dot"></span>
+                    <span id="nexus-network-label">ONLINE</span>
+                    <svg id="nexus-sync-icon" class="sync-icon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ====================================================================
+             MAIN CONTENT
+             ==================================================================== -->
+        <main class="nexus-main-content">
+
+            <!-- ------------------------------------------------------------
+                 PAGE 1: TODAY
+                 ------------------------------------------------------------ -->
+            <section id="view-today" class="page-view is-active">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">計画 → 実行 → 記録 // TODAY'S MISSIONS</span>
+                        <h2 class="view-main-title" id="today-banner-date">5 OCTOBER 2026</h2>
+                    </div>
+                    <div class="view-header-stats" id="today-stats-summary">
+                        <!-- Populated by ui.js -->
+                    </div>
+                </div>
+
+                <!-- Today Tasks Container -->
+                <div class="tasks-container" id="today-tasks-container">
+                    <!-- Dynamic task cards -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state-card" id="today-empty-state" style="display: none;">
+                    <div class="empty-icon">⛩️</div>
+                    <h3>Your day is clear.</h3>
+                    <p>No planned missions remaining for today.</p>
+                    <button class="btn-action" style="margin-top: 1rem; padding: 0.6rem 1.25rem;" onclick="window.nexusUI.openTaskModal()">
+                        + Add your first task
+                    </button>
+                </div>
+
+                <!-- "WHAT I DID TODAY" Section -->
+                <section class="daily-record-section">
+                    <div class="section-title-row">
+                        <div class="section-title-wrap">
+                            <span class="section-icon">⚡</span>
+                            <h3>WHAT I DID TODAY</h3>
+                            <span class="section-kanji">本日の実績記録</span>
+                        </div>
+                        <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted);">
+                            Permanent Record Archive
+                        </span>
+                    </div>
+
+                    <div class="record-form-grid">
+                        <div class="form-group">
+                            <label for="today-what-i-did-input">SUMMARY OF COMPLETED WORK // 実績内容</label>
+                            <textarea id="today-what-i-did-input" class="nexus-textarea" rows="4" placeholder="Example: Today I completed my DSA assignment, practiced C++, and worked on my project..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="today-daily-notes-input">DAILY NOTES & INSIGHTS // メモ・気づき</label>
+                            <textarea id="today-daily-notes-input" class="nexus-textarea" rows="2" placeholder="Key takeaways, obstacles overcome, or notes for future recall..."></textarea>
+                        </div>
+
+                        <button type="button" class="btn-save-record" onclick="window.nexusUI.saveDailyRecord()">
+                            SAVE DAILY RECORD // 記録保存
+                        </button>
+                    </div>
+                </section>
+            </section>
+
+            <!-- ------------------------------------------------------------
+                 PAGE 2: UPCOMING
+                 ------------------------------------------------------------ -->
+            <section id="view-upcoming" class="page-view">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">未来展望 // HORIZON VIEW</span>
+                        <h2 class="view-main-title">UPCOMING MISSIONS</h2>
+                    </div>
+
+                    <div class="upcoming-controls">
+                        <button class="btn-view-toggle is-active" data-days="5" onclick="window.nexusUI.setUpcomingDaysCount(5)">
+                            5-Day View
+                        </button>
+                        <button class="btn-view-toggle" data-days="7" onclick="window.nexusUI.setUpcomingDaysCount(7)">
+                            7-Day View
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upcoming-days-grid" id="upcoming-days-container">
+                    <!-- Populated by ui.js -->
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------
+                 PAGE 3: CALENDAR
+                 ------------------------------------------------------------ -->
+            <section id="view-calendar" class="page-view">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">活動履歴カレンダー // CHRONO MATRIX</span>
+                        <h2 class="view-main-title">ACTIVITY CALENDAR</h2>
+                    </div>
+
+                    <div class="cal-nav-group">
+                        <button class="btn-view-toggle is-active" onclick="window.nexusCalendar.switchView('month')">Month</button>
+                        <button class="btn-view-toggle" onclick="window.nexusCalendar.switchView('week')">Week</button>
+                    </div>
+                </div>
+
+                <!-- Calendar Navigation Bar -->
+                <div class="calendar-controls-bar">
+                    <div class="cal-nav-group">
+                        <button class="cal-nav-btn" onclick="window.nexusCalendar.prevPeriod()">&larr; Prev</button>
+                        <button class="cal-nav-btn" onclick="window.nexusCalendar.jumpToToday()">Today</button>
+                        <button class="cal-nav-btn" onclick="window.nexusCalendar.nextPeriod()">Next &rarr;</button>
+                    </div>
+
+                    <h3 class="cal-period-label" id="calendar-period-label">OCTOBER 2026</h3>
+
+                    <div></div>
+                </div>
+
+                <!-- Calendar Container -->
+                <div id="calendar-view-container">
+                    <!-- Populated by calendar.js -->
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------
+                 PAGE 4: HISTORY (PLANNED VS ACTUAL)
+                 ------------------------------------------------------------ -->
+            <section id="view-history" class="page-view">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">過去の軌跡 // PERMANENT CHRONICLE</span>
+                        <h2 class="view-main-title">ACTIVITY HISTORY</h2>
+                    </div>
+                </div>
+
+                <!-- History Filters Bar -->
+                <div class="history-controls-bar">
+                    <div class="filter-group">
+                        <label for="history-month-select">MONTH:</label>
+                        <select id="history-month-select" class="nexus-select" onchange="window.nexusHistory.setMonth(this.value)">
+                            <!-- Populated dynamically: October 2026, September 2026, August 2026... -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="history-filter-category">CATEGORY:</label>
+                        <select id="history-filter-category" class="nexus-select" onchange="window.nexusHistory.setFilters(this.value, undefined, undefined)">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="history-filter-priority">PRIORITY:</label>
+                        <select id="history-filter-priority" class="nexus-select" onchange="window.nexusHistory.setFilters(undefined, this.value, undefined)">
+                            <option value="all">All Priorities</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="history-filter-status">STATUS:</label>
+                        <select id="history-filter-status" class="nexus-select" onchange="window.nexusHistory.setFilters(undefined, undefined, this.value)">
+                            <option value="all">All Status</option>
+                            <option value="completed">Completed Only</option>
+                            <option value="pending">Pending Only</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- History Content: Planned vs Actual -->
+                <div id="history-content-container">
+                    <!-- Populated by history.js -->
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------
+                 PAGE 5: SEARCH
+                 ------------------------------------------------------------ -->
+            <section id="view-search" class="page-view">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">全体索敵 // GLOBAL ARCHIVE SEARCH</span>
+                        <h2 class="view-main-title">SEARCH ARCHIVE</h2>
+                    </div>
+                </div>
+
+                <!-- Search Input Bar -->
+                <div class="search-bar-wrap">
+                    <svg class="search-icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="search-input-field" class="search-input" placeholder="Search tasks, descriptions, 'What I did', categories, or notes..." oninput="window.nexusSearch.handleInput(this.value)">
+                </div>
+
+                <!-- Multi-Filter Row -->
+                <div class="search-filters-row">
+                    <div class="filter-group">
+                        <label for="search-filter-category">CATEGORY:</label>
+                        <select id="search-filter-category" class="nexus-select" onchange="window.nexusSearch.updateFilters({ category: this.value })">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-filter-priority">PRIORITY:</label>
+                        <select id="search-filter-priority" class="nexus-select" onchange="window.nexusSearch.updateFilters({ priority: this.value })">
+                            <option value="all">All</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-filter-status">STATUS:</label>
+                        <select id="search-filter-status" class="nexus-select" onchange="window.nexusSearch.updateFilters({ status: this.value })">
+                            <option value="all">All</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-date-from">FROM:</label>
+                        <input type="date" id="search-date-from" class="nexus-input-sm" onchange="window.nexusSearch.updateFilters({ dateFrom: this.value })">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="search-date-to">TO:</label>
+                        <input type="date" id="search-date-to" class="nexus-input-sm" onchange="window.nexusSearch.updateFilters({ dateTo: this.value })">
+                    </div>
+
+                    <button class="btn-reset-filters" onclick="window.nexusSearch.resetFilters()">Reset Filters</button>
+                </div>
+
+                <!-- Search Results Meta & Output -->
+                <div class="search-results-meta">
+                    <span class="sec-badge" id="search-results-count">0 found</span>
+                </div>
+
+                <div id="search-results-container">
+                    <!-- Populated by search.js -->
+                </div>
+            </section>
+
+            <!-- ------------------------------------------------------------
+                 PAGE 6: SETTINGS
+                 ------------------------------------------------------------ -->
+            <section id="view-settings" class="page-view">
+                <div class="view-header">
+                    <div class="view-title-wrap">
+                        <span class="view-kanji-sub">システム構成 // SYSTEM CONFIGURATION</span>
+                        <h2 class="view-main-title">SETTINGS</h2>
+                    </div>
+                </div>
+
+                <div class="settings-grid">
+                    <!-- Card 1: Cloud Sync (Supabase PostgreSQL) -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span style="font-size: 1.25rem;">☁️</span>
+                            <h3>SUPABASE CLOUD SYNC</h3>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                            Connect your free Supabase PostgreSQL project. Secrets are stored safely in local storage and never exposed to other users.
+                        </p>
+
+                        <div class="form-group" style="margin-bottom: 0.9rem;">
+                            <label for="setting-supabase-url">SUPABASE PROJECT URL</label>
+                            <input type="url" id="setting-supabase-url" class="nexus-textarea" style="padding: 0.6rem 0.8rem;" placeholder="https://xyzcompany.supabase.co">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.25rem;">
+                            <label for="setting-supabase-key">SUPABASE PUBLIC ANON KEY</label>
+                            <input type="password" id="setting-supabase-key" class="nexus-textarea" style="padding: 0.6rem 0.8rem;" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                        </div>
+
+                        <button class="btn-secondary" style="width: 100%; font-family: var(--font-display);" onclick="window.nexusUI.testAndSaveSupabaseConnection()">
+                            TEST & CONNECT DATABASE
+                        </button>
+                        <div id="supabase-test-result"></div>
+                    </div>
+
+                    <!-- Card 2: Cyber Aesthetic & Toggles -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span style="font-size: 1.25rem;">⚡</span>
+                            <h3>INTERFACE & AUDIO</h3>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label for="setting-theme-select">CYBERPUNK THEME PALETTE</label>
+                            <select id="setting-theme-select" class="nexus-select" style="width: 100%;" onchange="window.nexusUI.saveSettingsFromForm()">
+                                <option value="cyberpunk">Cyberpunk Cyan (Default)</option>
+                                <option value="sakura">Sakura Neo Tokyo (Pink)</option>
+                                <option value="slate">Zen Obsidian Slate (Minimal)</option>
+                                <option value="emerald">Matrix Cyber Emerald (Green)</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div class="toggle-label-wrap">
+                                <span class="toggle-title">Particles & Animations</span>
+                                <span class="toggle-desc">Sakura blossom drift & neon pulses</span>
+                            </div>
+                            <label class="nexus-switch">
+                                <input type="checkbox" id="setting-anim-toggle" checked onchange="window.nexusUI.saveSettingsFromForm()">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div class="toggle-label-wrap">
+                                <span class="toggle-title">3D Holographic Tilt</span>
+                                <span class="toggle-desc">Interactive perspective depth on hover</span>
+                            </div>
+                            <label class="nexus-switch">
+                                <input type="checkbox" id="setting-3d-toggle" checked onchange="window.nexusUI.saveSettingsFromForm()">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div class="toggle-label-wrap">
+                                <span class="toggle-title">Synthesized Audio FX</span>
+                                <span class="toggle-desc">Web Audio clicks, chimes & completions</span>
+                            </div>
+                            <label class="nexus-switch">
+                                <input type="checkbox" id="setting-sound-toggle" checked onchange="window.nexusUI.saveSettingsFromForm()">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="setting-toggle-row">
+                            <div class="toggle-label-wrap">
+                                <span class="toggle-title">Reduced Motion</span>
+                                <span class="toggle-desc">Disable heavy motion for accessibility</span>
+                            </div>
+                            <label class="nexus-switch">
+                                <input type="checkbox" id="setting-motion-toggle" onchange="window.nexusUI.saveSettingsFromForm()">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Data Management & Export/Import -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span style="font-size: 1.25rem;">💾</span>
+                            <h3>DATA BACKUP & RESTORE</h3>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 1.25rem;">
+                            Export your entire history, tasks, and daily records permanently.
+                        </p>
+
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                            <button class="btn-secondary" style="flex: 1;" onclick="window.nexusUI.exportDataJSON()">
+                                ⤓ Export JSON
+                            </button>
+                            <button class="btn-secondary" style="flex: 1;" onclick="window.nexusUI.exportDataCSV()">
+                                ⤓ Export CSV
+                            </button>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label>IMPORT BACKUP (JSON)</label>
+                            <input type="file" id="setting-import-file" accept=".json" class="nexus-textarea" style="padding: 0.5rem;" onchange="window.nexusUI.handleImportJSONFile(event)">
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+                            <button class="btn-danger" style="width: 100%;" onclick="window.nexusUI.confirmClearLocalCache()">
+                                Clear Local Cache
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Local Cache Diagnostics -->
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <span style="font-size: 1.25rem;">📊</span>
+                            <h3>LOCAL STORAGE DIAGNOSTICS</h3>
+                        </div>
+                        <div id="setting-storage-stats">
+                            <!-- Populated by ui.js -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- ====================================================================
+             RIGHT DRAWER / PREVIEW (DESKTOP)
+             ==================================================================== -->
+        <aside class="nexus-right-drawer">
+            <div class="drawer-header">
+                <h3>MISSION OVERVIEW</h3>
+                <span class="drawer-kanji">概要</span>
+            </div>
+
+            <!-- Progress Ring -->
+            <div class="drawer-progress-box">
+                <div class="progress-circle-wrap">
+                    <svg class="progress-svg" width="90" height="90" viewBox="0 0 90 90">
+                        <circle class="progress-bg-circle" cx="45" cy="45" r="40"></circle>
+                        <circle id="preview-progress-fill" class="progress-fill-circle" cx="45" cy="45" r="40"></circle>
+                    </svg>
+                    <div class="progress-center-text" id="preview-progress-text">0%</div>
+                </div>
+                <div>
+                    <div style="font-family: var(--font-display); font-size: 0.85rem; color: #fff;">TODAY STATUS</div>
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Execution Progress</div>
+                </div>
+            </div>
+
+            <!-- Quick upcoming tasks glance -->
+            <div>
+                <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-cyan); letter-spacing: 1px; margin-bottom: 0.75rem;">
+                    TODAY'S MISSIONS PREVIEW
+                </div>
+                <div id="preview-upcoming-list">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ====================================================================
+         MOBILE BOTTOM NAVIGATION BAR
+         ==================================================================== -->
+    <nav class="nexus-mobile-nav">
+        <button class="mobile-nav-item is-active" data-nav-target="today">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Today</span>
+        </button>
+        <button class="mobile-nav-item" data-nav-target="upcoming">
+            <svg viewBox="0 0 24 24"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+            <span>Upcoming</span>
+        </button>
+        <button class="mobile-nav-item" data-nav-target="calendar">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Calendar</span>
+        </button>
+        <button class="mobile-nav-item" data-nav-target="history">
+            <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"></path></svg>
+            <span>History</span>
+        </button>
+        <button class="mobile-nav-item" data-nav-target="search">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>Search</span>
+        </button>
+        <button class="mobile-nav-item" data-nav-target="settings">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Settings</span>
+        </button>
+    </nav>
+
+    <!-- Mobile Floating Action Button -->
+    <button id="btn-mobile-fab" class="mobile-fab" title="Add Task">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+
+    <!-- ====================================================================
+         MODAL 1: ADD / EDIT TASK
+         ==================================================================== -->
+    <div id="task-modal" class="nexus-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="task-modal-title">NEW TASK // 新規任務</h3>
+                <button type="button" class="modal-close-btn" onclick="window.nexusUI.closeTaskModal()">&times;</button>
+            </div>
+            <form id="task-modal-form" onsubmit="window.nexusUI.handleSaveTaskForm(event)">
+                <input type="hidden" id="task-input-id">
+                <div class="modal-body">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="task-input-title">TASK TITLE *</label>
+                        <input type="text" id="task-input-title" class="nexus-textarea" required placeholder="e.g. DSA Practice, C++ Revision, Lab Report...">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="task-input-desc">DESCRIPTION</label>
+                        <textarea id="task-input-desc" class="nexus-textarea" rows="2" placeholder="Details, links, or specific problems to solve..."></textarea>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label for="task-input-date">PLANNED DATE *</label>
+                            <input type="date" id="task-input-date" class="nexus-textarea" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="task-input-priority">PRIORITY</label>
+                            <select id="task-input-priority" class="nexus-select" style="width: 100%; height: 42px;">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group">
+                            <label for="task-input-start">START TIME</label>
+                            <input type="time" id="task-input-start" class="nexus-textarea">
+                        </div>
+                        <div class="form-group">
+                            <label for="task-input-end">END TIME</label>
+                            <input type="time" id="task-input-end" class="nexus-textarea">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+                            <label for="task-input-category">CATEGORY</label>
+                            <button type="button" class="btn-action" style="padding: 0.15rem 0.45rem; font-size: 0.7rem;" onclick="window.nexusUI.addNewCategoryPrompt()">
+                                + Custom Category
+                            </button>
+                        </div>
+                        <select id="task-input-category" class="nexus-select" style="width: 100%; height: 42px;">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-action" onclick="window.nexusUI.closeTaskModal()">Cancel</button>
+                    <button type="submit" id="task-modal-submit-btn" class="btn-save-record" style="padding: 0.65rem 1.4rem;">
+                        Add Task
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 2: CARRY FORWARD / MOVE TASK
+         ==================================================================== -->
+    <div id="carry-forward-modal" class="nexus-modal">
+        <div class="modal-dialog" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3>CARRY FORWARD // 任務繰越</h3>
+                <button type="button" class="modal-close-btn" onclick="window.nexusUI.closeCarryForwardModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cf-task-id">
+                <p style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">Selected mission:</p>
+                <h4 id="cf-task-title" style="font-family: var(--font-heading); font-size: 1.25rem; color: #fff; margin-bottom: 1.25rem;"></h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.4; margin-bottom: 1.5rem;">
+                    Moving this task will preserve its original planned date in historical archives so you can review when it was originally scheduled.
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                    <button type="button" class="btn-save-record" style="width: 100%;" onclick="window.nexusUI.executeCarryForward('tomorrow')">
+                        &rarr; Move to Tomorrow
+                    </button>
+
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="date" id="cf-custom-date" class="nexus-textarea" style="padding: 0.55rem;">
+                        <button type="button" class="btn-secondary" style="white-space: nowrap;" onclick="window.nexusUI.executeCarryForward('custom')">
+                            Move to Date
+                        </button>
+                    </div>
+
+                    <div style="border-top: 1px solid var(--border-subtle); padding-top: 0.85rem; display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn-action" style="flex: 1;" onclick="window.nexusUI.closeCarryForwardModal()">
+                            Keep for Today
+                        </button>
+                        <button type="button" class="btn-danger" style="flex: 1;" onclick="window.nexusUI.executeCarryForward('delete')">
+                            Delete Task
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         MODAL 3: DATE DETAILS (CALENDAR DRILLDOWN)
+         ==================================================================== -->
+    <div id="date-details-modal" class="nexus-modal">
+        <div class="modal-dialog" style="max-width: 680px;">
+            <div class="modal-header">
+                <div>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-cyan);">DATE CHRONICLE</span>
+                    <h3 id="date-details-title">DATE DETAILS</h3>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="window.nexusCalendar.closeDateDetails()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="date-details-hidden-date">
+
+                <div id="date-details-planned" style="margin-bottom: 1rem;"></div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-emerald); letter-spacing: 1px; margin-bottom: 0.5rem;">
+                        ✓ COMPLETED MISSIONS:
+                    </div>
+                    <div id="date-details-completed" class="tasks-container" style="margin-bottom: 1rem;"></div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-amber); letter-spacing: 1px; margin-bottom: 0.5rem;">
+                        ○ UNFINISHED / PENDING MISSIONS:
+                    </div>
+                    <div id="date-details-uncompleted" class="tasks-container" style="margin-bottom: 1rem;"></div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--neon-cyan); letter-spacing: 1px; margin-bottom: 0.4rem;">
+                        WHAT I DID:
+                    </div>
+                    <p id="date-details-what-i-did" style="color: var(--text-primary); font-size: 0.95rem; line-height: 1.45;"></p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+                    <div style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 0.4rem;">
+                        NOTES:
+                    </div>
+                    <p id="date-details-notes" style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.45;"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-action" onclick="window.nexusCalendar.closeDateDetails()">Close</button>
+                <button type="button" class="btn-secondary" onclick="const d = document.getElementById('date-details-hidden-date').value; window.nexusCalendar.closeDateDetails(); window.nexusUI.openTaskModal(null, d);">
+                    + Add Task for this Date
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Application JavaScript Modules -->
+    <script src="js/storage.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/offline.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
